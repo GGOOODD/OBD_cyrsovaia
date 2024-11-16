@@ -1,11 +1,11 @@
 from typing import Any
-
+import sqlite3
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String
-import datetime
+from datetime import datetime
 
-engine = create_async_engine("sqlite+aiosqlite:///./site.db")
+engine = create_async_engine("sqlite+aiosqlite:///./site.db", connect_args={})
 new_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
@@ -37,6 +37,8 @@ class AirportModel(Model):
     settlement_id: Mapped[int] = mapped_column(ForeignKey("settlement.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(100))
     adress: Mapped[str] = mapped_column(String(256))
+
+    flight: Mapped[list["FlightModel"]] = relationship()
 
 
 class AirlineModel(Model):
@@ -109,8 +111,8 @@ class ScheduledFlightModel(Model):
     flight_id: Mapped[int] = mapped_column(ForeignKey("flight.id", ondelete="CASCADE"))
     scheduled_flight_model_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight_model.id", ondelete="CASCADE"))
     airplane_id: Mapped[int] = mapped_column(ForeignKey("airplane.id", ondelete="CASCADE"))
-    departure_datetime: Mapped[datetime.datetime]
-    arrival_datetime: Mapped[datetime.datetime]
+    departure_datetime: Mapped[datetime]
+    arrival_datetime: Mapped[datetime]
 
     crew: Mapped[list["CrewModel"]] = relationship()
 
@@ -133,7 +135,9 @@ class FlightHistoryModel(Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    flight_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight.id", ondelete="CASCADE"))
+    scheduled_flight_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight.id", ondelete="CASCADE"))
+    payment_datetime: Mapped[datetime]
+    seat: Mapped[str] = mapped_column(String(10))
 
 
 class MaintenanceModelModel(Model):
@@ -151,7 +155,7 @@ class PretripMaintenanceModel(Model):
     maintenance_model_id: Mapped[int] = mapped_column(ForeignKey("maintenance_model.id", ondelete="CASCADE"))
     employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"))
     airplane_id: Mapped[int] = mapped_column(ForeignKey("airplane.id", ondelete="CASCADE"))
-    datetime: Mapped[datetime.datetime]
+    datetime: Mapped[datetime]
     result: Mapped[str] = mapped_column(String(100))
 
 
@@ -166,3 +170,7 @@ class ShopModel(Model):
 async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Model.metadata.create_all)
+    conn = sqlite3.connect('site.db')
+    conn.execute("PRAGMA foreign_keys = TRUE;")
+    conn.close()
+

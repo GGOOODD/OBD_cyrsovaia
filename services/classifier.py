@@ -8,42 +8,29 @@ from functions import Functions
 
 
 class Classifier:
+    tables = ["country", "settlement", "airport", "airline", "airplane_model", "job_title", "scheduled_flight_model",
+              "maintenance_model", "shop"]
 
-    tablename = {"country": CountryModel, "settlement": SettlementModel, "airport": AirportModel, "airline": AirlineModel,
-                 "airplane_model": AirplaneModelModel, "job_title": JobTitleModel, "scheduled_flight_model": ScheduledFlightModelModel,
-                 "maintenance_model": MaintenanceModelModel, "shop": ShopModel}
+    @classmethod
+    def check_tablename(cls, tablename):
+        if tablename not in Classifier.tables:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="This classifier does not exist",
+            )
+
     @classmethod
     async def create(cls, query: Query):
-        try:
-            Classifier.tablename[query.tablename]
-        except KeyError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This tablename does not exist",
-            )
+        Classifier.check_tablename(query.tablename)
 
-        query_field = Classifier.tablename[query.tablename](**query.args)
-        async with new_session() as session:
-            session.add(query_field)
-            try:
-                await session.flush()
-            except IntegrityError:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Args is wrong",
-                )
-            await session.commit()
-        return Inform(detail="created")
+        # check if admin
 
+        return await Functions.create_field(query.tablename, query.args)
+
+    """
     @classmethod
-    async def get(cls, tablename: str, field_id: int):
-        try:
-            Classifier.tablename[tablename]
-        except KeyError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This tablename does not exist",
-            )
+    async def get_by_id(cls, tablename: str, field_id: int):
+        Classifier.check_tablename(tablename)
 
         querydb = select(Classifier.tablename[tablename]).filter_by(id=field_id)
         async with new_session() as session:
@@ -57,76 +44,38 @@ class Classifier:
         return field
 
     @classmethod
-    async def get_all(cls, tablename: str):
-        try:
-            Classifier.tablename[tablename]
-        except KeyError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This tablename does not exist",
-            )
+    async def get_by_name(cls, tablename: str, field_name: str):
+        Classifier.check_tablename(tablename)
 
-        querydb = select(Classifier.tablename[tablename])
+        querydb = select(Classifier.tablename[tablename]).filter_by(name=field_name)
         async with new_session() as session:
             result = await session.execute(querydb)
-        fields = result.scalars().all()
+        field = result.scalars().first()
+        if field is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="This field does not exist",
+            )
+        return field
+    """
 
-        return fields
+    @classmethod
+    async def get_all(cls, tablename: str):
+        Classifier.check_tablename(tablename)
+        return await Functions.get_all_from_table(tablename)
 
     @classmethod
     async def update(cls, field_id: int, query: Query):
-        try:
-            Classifier.tablename[query.tablename]
-        except KeyError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This tablename does not exist",
-            )
+        Classifier.check_tablename(query.tablename)
 
-        querydb = select(Classifier.tablename[query.tablename]).filter_by(id=field_id)
-        async with new_session() as session:
-            result = await session.execute(querydb)
-            field = result.scalars().first()
-            if field is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="This field does not exist",
-                )
-            for key, value in query.args.items():
-                setattr(field, key, value)
+        # check if admin
 
-            try:
-                await session.flush()
-            except IntegrityError:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Args is wrong",
-                )
-            await session.commit()
-        return Inform(detail="updated")
-
+        return await Functions.update_field(query.tablename, field_id, query.args.__dict__)
 
     @classmethod
     async def delete(cls, tablename: str, field_id: int):
-        try:
-            Classifier.tablename[tablename]
-        except KeyError:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This tablename does not exist",
-            )
+        Classifier.check_tablename(tablename)
 
-        querydb = select(Classifier.tablename[tablename]).filter_by(id=field_id)
-        async with new_session() as session:
-            result = await session.execute(querydb)
-            field = result.scalars().first()
-            if field is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="This field does not exist",
-                )
-            querydb = delete(Classifier.tablename[tablename]).filter_by(id=field_id)
-            await session.execute(querydb)
-            await session.flush()
-            await session.commit()
-        return Inform(detail="task deleted")
+        # check if admin
+
+        return await Functions.delete_field(tablename, field_id)

@@ -56,7 +56,6 @@ class Auth:
             key="token",
             value=jwt.encode({"id": user.id}, Auth.key, Auth.algorithm)
         )
-        print('kekw?')
         return response
 
     @classmethod
