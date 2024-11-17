@@ -28,14 +28,14 @@ class Functions:
         query = select(UserModel).filter_by(id=cookie["id"])
         async with new_session() as session:
             result = await session.execute(query)
-        user = result.scalars().first()
-        if user is None:
+        user_field = result.scalars().first()
+        if user_field is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User cookie is outdated"
             )
 
-        return user.id
+        return user_field.id
 
     @classmethod
     async def check_foreign_keys(cls):

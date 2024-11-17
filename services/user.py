@@ -19,20 +19,22 @@ class User:
             )
 
     @classmethod
-    async def create(cls, tablename: str, data: FlightHistoryInfo):
+    async def create(cls, tablename: str, data: FlightHistoryInfo, request: Request):
         User.check_tablename(tablename)
 
         # check if user, add user_id in data
+        user_id = await Functions.get_user_id(request)
+        data.__dict__["user_id"] = user_id
 
         return await Functions.create_field(tablename, data.__dict__)
 
     @classmethod
-    async def get_all(cls, tablename: str):
+    async def get_all(cls, tablename: str, request: Request):
         User.check_tablename(tablename)
 
         # check if user, get user_id
+        user_id = await Functions.get_user_id(request)
 
-        user_id = 1
         querydb = select(Functions.tablename[tablename]).filter_by(user_id=user_id)
         async with new_session() as session:
             result = await session.execute(querydb)
