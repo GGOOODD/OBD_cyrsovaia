@@ -102,7 +102,7 @@ class EmployeeModel(Model):
 class CrewModel(Model):
     __tablename__ = "crew"
 
-    flight_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight.id", ondelete="CASCADE"), primary_key=True)
+    scheduled_flight_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight.id", ondelete="CASCADE"), primary_key=True)
     employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"), primary_key=True)
 
     employee: Mapped["EmployeeModel"] = relationship()

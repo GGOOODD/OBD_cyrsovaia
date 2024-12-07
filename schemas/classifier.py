@@ -81,3 +81,4 @@ class ScheduledFlightData(BaseModel):
     datetimeArrival: str
     registrationNumber: str
     scheduledFlightModelName: str
+    crew: list[int]

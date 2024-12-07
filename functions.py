@@ -86,7 +86,7 @@ class Functions:
                 )
             await session.commit()
             await Functions.check_foreign_keys()
-        return Inform(detail="created")
+        return Inform(detail="created", field_id=query_field.id)
 
     """
     @classmethod

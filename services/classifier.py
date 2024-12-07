@@ -569,12 +569,18 @@ class Classifier:
         field3 = result.scalars().first()
         if field3 is None:
             return Inform(detail="Такой модели назначенного рейса не существует")
-        return await Functions.create_field("scheduled_flight",
-                                            {"flight_id": field1.id,
-                                             "airplane_id": field2.id,
-                                             "scheduled_flight_model_id": field3.id,
-                                             "departure_datetime": data.datetimeDeparture,
-                                             "arrival_datetime": data.datetimeArrival})
+        inform = await Functions.create_field("scheduled_flight",
+                                              {"flight_id": field1.id,
+                                               "airplane_id": field2.id,
+                                               "scheduled_flight_model_id": field3.id,
+                                               "departure_datetime": data.datetimeDeparture,
+                                               "arrival_datetime": data.datetimeArrival})
+
+        for employee_id in data.crew:
+            await Functions.create_field("crew",
+                                         {"scheduled_flight_id": inform.field_id,
+                                          "employee_id": employee_id})
+        return Inform(detail="created")
 
     @classmethod
     async def update_scheduled_flight(cls, field_id: int, data: ScheduledFlightData):
@@ -605,12 +611,21 @@ class Classifier:
         field3 = result.scalars().first()
         if field3 is None:
             return Inform(detail="Такой модели назначенного рейса не существует")
-        return await Functions.update_field("scheduled_flight", field_id,
-                                            {"flight_id": field1.id,
-                                             "airplane_id": field2.id,
-                                             "scheduled_flight_model_id": field3.id,
-                                             "departure_datetime": data.datetimeDeparture,
-                                             "arrival_datetime": data.datetimeArrival})
+        inform = await Functions.update_field("scheduled_flight", field_id,
+                                              {"flight_id": field1.id,
+                                               "airplane_id": field2.id,
+                                               "scheduled_flight_model_id": field3.id,
+                                               "departure_datetime": data.datetimeDeparture,
+                                               "arrival_datetime": data.datetimeArrival})
+
+        querydb = delete(CrewModel).filter_by(scheduled_flight_id=inform.field_id)
+        async with new_session() as session:
+            await session.execute(querydb)
+        for employee_id in data.crew:
+            await Functions.create_field("crew",
+                                         {"scheduled_flight_id": inform.field_id,
+                                          "employee_id": employee_id})
+        return Inform(detail="created")
 
     @classmethod
     async def delete_scheduled_flight(cls, field_id: id):
