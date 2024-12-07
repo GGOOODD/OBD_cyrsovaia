@@ -18,7 +18,7 @@ class CountryModel(Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
-    country_geocode: Mapped[str] = mapped_column(String(3))
+    geocode: Mapped[str] = mapped_column(String(3))
 
 
 class SettlementModel(Model):
@@ -29,6 +29,8 @@ class SettlementModel(Model):
     name: Mapped[str] = mapped_column(String(100))
     type: Mapped[str] = mapped_column(String(50))
 
+    country: Mapped["CountryModel"] = relationship()
+
 
 class AirportModel(Model):
     __tablename__ = "airport"
@@ -36,9 +38,9 @@ class AirportModel(Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     settlement_id: Mapped[int] = mapped_column(ForeignKey("settlement.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(100))
-    adress: Mapped[str] = mapped_column(String(256))
+    address: Mapped[str] = mapped_column(String(256))
 
-    flight: Mapped[list["FlightModel"]] = relationship()
+    settlement: Mapped["SettlementModel"] = relationship()
 
 
 class AirlineModel(Model):
@@ -55,6 +57,9 @@ class FlightModel(Model):
     airline_id: Mapped[int] = mapped_column(ForeignKey("airline.id", ondelete="CASCADE"))
     airport_id: Mapped[int] = mapped_column(ForeignKey("airport.id", ondelete="CASCADE"))
 
+    airport: Mapped["AirportModel"] = relationship()
+    airline: Mapped["AirlineModel"] = relationship()
+
 
 class AirplaneModelModel(Model):
     __tablename__ = "airplane_model"
@@ -70,6 +75,8 @@ class AirplaneModel(Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     airplane_model_id: Mapped[int] = mapped_column(ForeignKey("airplane_model.id", ondelete="CASCADE"))
     registration_number: Mapped[str] = mapped_column(String(100))
+
+    airplane_model: Mapped["AirplaneModelModel"] = relationship()
 
 
 class JobTitleModel(Model):
@@ -89,12 +96,16 @@ class EmployeeModel(Model):
     patronymic: Mapped[str] = mapped_column(String(100))
     experience: Mapped[str] = mapped_column(String(50))
 
+    job_title: Mapped["JobTitleModel"] = relationship()
+
 
 class CrewModel(Model):
     __tablename__ = "crew"
 
     flight_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight.id", ondelete="CASCADE"), primary_key=True)
     employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"), primary_key=True)
+
+    employee: Mapped["EmployeeModel"] = relationship()
 
 
 class ScheduledFlightModelModel(Model):
@@ -114,7 +125,9 @@ class ScheduledFlightModel(Model):
     departure_datetime: Mapped[datetime]
     arrival_datetime: Mapped[datetime]
 
-    crew: Mapped[list["CrewModel"]] = relationship()
+    flight: Mapped["FlightModel"] = relationship()
+    scheduled_flight_model: Mapped["ScheduledFlightModelModel"] = relationship()
+    airplane: Mapped["AirplaneModel"] = relationship()
 
 
 class UserModel(Model):
@@ -127,8 +140,6 @@ class UserModel(Model):
     email: Mapped[str] = mapped_column(String(256), unique=True)
     password: Mapped[str] = mapped_column(String(256))
 
-    flight_history: Mapped[list["FlightHistoryModel"]] = relationship()
-
 
 class FlightHistoryModel(Model):
     __tablename__ = "flight_history"
@@ -138,6 +149,8 @@ class FlightHistoryModel(Model):
     scheduled_flight_id: Mapped[int] = mapped_column(ForeignKey("scheduled_flight.id", ondelete="CASCADE"))
     payment_datetime: Mapped[datetime]
     seat: Mapped[str] = mapped_column(String(10))
+
+    scheduled_flight: Mapped["ScheduledFlightModel"] = relationship()
 
 
 class MaintenanceModelModel(Model):
@@ -157,6 +170,10 @@ class PretripMaintenanceModel(Model):
     airplane_id: Mapped[int] = mapped_column(ForeignKey("airplane.id", ondelete="CASCADE"))
     datetime: Mapped[datetime]
     result: Mapped[str] = mapped_column(String(100))
+
+    maintenance_model: Mapped["MaintenanceModelModel"] = relationship()
+    employee: Mapped["EmployeeModel"] = relationship()
+    airplane: Mapped["AirplaneModel"] = relationship()
 
 
 class ShopModel(Model):

@@ -4,7 +4,7 @@ from services import Flight
 
 router = APIRouter(tags=["Flight"], prefix="/flight")
 
-
+"""
 @router.post("/create_flight", response_model=Inform, status_code=status.HTTP_201_CREATED)
 async def create_flight(data: FlightInfo):
     return await Flight.create("flight", data)
@@ -23,28 +23,18 @@ async def create_airplane(data: AirplaneInfo):
 @router.post("/create_pretrip_maintenance", response_model=Inform, status_code=status.HTTP_201_CREATED)
 async def create_pretrip_maintenance(data: PretripMaintenanceInfo):
     return await Flight.create("pretrip_maintenance", data)
+"""
 
-
-@router.get("/get_all_flight", response_model=list[GetFlight], status_code=status.HTTP_200_OK)
-async def get_all_flight():
-    return await Flight.get_all("flight")
-
-
-@router.get("/get_all_scheduled_flight", response_model=list[GetScheduledFlight], status_code=status.HTTP_200_OK)
+@router.get("/get_all_scheduled_flight", status_code=status.HTTP_200_OK)
 async def get_all_scheduled_flight():
-    return await Flight.get_all("scheduled_flight")
+    return await Flight.get_all_scheduled_flight()
 
 
-@router.get("/get_all_airplane", response_model=list[GetAirplane], status_code=status.HTTP_200_OK)
-async def get_all_airplane():
-    return await Flight.get_all("airplane")
+@router.get("/get_scheduled_flight/{field_id}", status_code=status.HTTP_200_OK)
+async def get_scheduled_flight(field_id: int):
+    return await Flight.get_scheduled_flight(field_id)
 
-
-@router.get("/get_all_pretrip_maintenance", response_model=list[GetPretripMaintenance], status_code=status.HTTP_200_OK)
-async def get_all_pretrip_maintenance():
-    return await Flight.get_all("pretrip_maintenance")
-
-
+"""
 @router.put("/update_flight/{field_id}", response_model=Inform, status_code=status.HTTP_200_OK)
 async def update_flight(field_id: int, data: FlightInfo):
     return await Flight.update("flight", field_id, data)
@@ -83,3 +73,4 @@ async def delete_airplane(field_id: int):
 @router.delete("/delete_pretrip_maintenance/{field_id}", response_model=Inform, status_code=status.HTTP_200_OK)
 async def delete_pretrip_maintenance(field_id: int):
     return await Flight.delete("pretrip_maintenance", field_id)
+"""

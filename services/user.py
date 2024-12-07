@@ -5,39 +5,100 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 from functions import Functions
+import jwt
+from services import Auth
 
 
 class User:
-    tables = ["flight_history"]
-
     @classmethod
-    def check_tablename(cls, tablename):
-        if tablename not in User.tables:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This table does not exist",
-            )
-
-    @classmethod
-    async def create(cls, tablename: str, data: FlightHistoryInfo, request: Request):
-        User.check_tablename(tablename)
-
+    async def create_flight_history(cls, sch_flight_id: int, request: Request):
         # check if user, add user_id in data
         user_id = await Functions.get_user_id(request)
-        data.__dict__["user_id"] = user_id
 
-        return await Functions.create_field(tablename, data.__dict__)
+        now = datetime.now()
+        querydb = select(FlightHistoryModel).filter_by(flight_id=sch_flight_id)
+        async with new_session() as session:
+            result = await session.execute(querydb)
+        fields = result.scalars().all()
+        for literal in "ABCDEF":
+            for number in range(1, 28):
+                gen_seat = literal.join(str(number))
+                flag = True
+                for field in fields:
+                    if field.seat == gen_seat:
+                        flag = False
+                        break
+                if flag:
+                    return await Functions.create_field("flight_history",
+                                                        {"user_id": user_id,
+                                                         "scheduled_flight_id": sch_flight_id,
+                                                         "payment_datetime": now,
+                                                         "seat": gen_seat})
+        return Inform(detail="all seats are reserved")
+
 
     @classmethod
-    async def get_all(cls, tablename: str, request: Request):
-        User.check_tablename(tablename)
-
+    async def get_all_flight_history(cls, request: Request):
         # check if user, get user_id
         user_id = await Functions.get_user_id(request)
 
-        querydb = select(Functions.tablename[tablename]).filter_by(user_id=user_id)
+        querydb = select(FlightHistoryModel).filter_by(user_id=user_id).options(
+            joinedload(FlightHistoryModel.scheduled_flight)
+            .joinedload(ScheduledFlightModel.flight)
+            .joinedload(FlightModel.airline),
+            joinedload(FlightHistoryModel.scheduled_flight)
+            .joinedload(ScheduledFlightModel.flight)
+            .joinedload(FlightModel.airport)
+            .joinedload(AirportModel.settlement)
+        )
         async with new_session() as session:
             result = await session.execute(querydb)
         fields = result.scalars().all()
 
+        data = []
+        for field in fields:
+            data.append({"airline": field.scheduled_flight.flight.airline.name,
+                         "destination": field.scheduled_flight.flight.airline.settlement.name,
+                         "airport": field.scheduled_flight.flight.airline.name,
+                         "payment_datetime": field.payment_datetime,
+                         "seat": field.seat})
         return fields
+
+    @classmethod
+    async def get_user_info(cls, request: Request):
+        # check if user, get user_id
+        user_id = await Functions.get_user_id(request)
+
+        querydb = select(UserModel).filter_by(id=user_id)
+        async with new_session() as session:
+            result = await session.execute(querydb)
+        field = result.scalars().first()
+
+        data = {"name": field.name, "surname": field.surname, "patronymic": field.patronymic, "email": field.email}
+        return data
+
+    @classmethod
+    async def change_password(cls, password: UpdPassword, request: Request):
+        user_id = await Functions.get_user_id(request)
+
+        querydb = select(UserModel).filter_by(id=user_id)
+        async with new_session() as session:
+            result = await session.execute(querydb)
+        field = result.scalars().first()
+
+        field.password = jwt.encode({"password": password.password}, Auth.key, Auth.algorithm)
+        try:
+            await session.flush()
+        except IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Args is wrong",
+            )
+        await session.commit()
+        return Inform(detail="done")
+
+    @classmethod
+    async def change_fio(cls, fio: UpdFIO, request: Request):
+        user_id = await Functions.get_user_id(request)
+
+        return await Functions.update_field("user", user_id, fio.__dict__)

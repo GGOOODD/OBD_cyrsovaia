@@ -3,6 +3,7 @@ from database import *
 from schemas import *
 from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError
+from services import Auth
 import jwt
 import sqlite3
 
@@ -22,9 +23,7 @@ class Functions:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Login cookie was not found",
             )
-        key = "RSGSDFGEFA3W5Y"
-        algorithm = "HS256"
-        cookie = jwt.decode(token, key, algorithm)
+        cookie = jwt.decode(token, Auth.key, Auth.algorithm)
         query = select(UserModel).filter_by(id=cookie["id"])
         async with new_session() as session:
             result = await session.execute(query)
@@ -39,6 +38,7 @@ class Functions:
 
     @classmethod
     async def check_foreign_keys(cls):
+        return
         conn = sqlite3.connect('site.db')
         cursor = conn.execute("PRAGMA foreign_key_check;")
         violations = cursor.fetchall()
