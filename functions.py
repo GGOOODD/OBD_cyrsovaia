@@ -2,7 +2,7 @@ from fastapi import HTTPException, status, Request
 from database import *
 from schemas import *
 from sqlalchemy import select, delete
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from services import Auth
 import jwt
 import sqlite3
@@ -13,7 +13,7 @@ class Functions:
                  "airplane_model": AirplaneModelModel, "job_title": JobTitleModel, "scheduled_flight_model": ScheduledFlightModelModel,
                  "maintenance_model": MaintenanceModelModel, "shop": ShopModel, "flight": FlightModel,
                  "scheduled_flight": ScheduledFlightModel, "airplane": AirplaneModel, "pretrip_maintenance": PretripMaintenanceModel,
-                 "user": UserModel, "flight_history": FlightHistoryModel}
+                 "user": UserModel, "flight_history": FlightHistoryModel, "employee": EmployeeModel, "crew": CrewModel}
 
     @classmethod
     async def get_user_id(cls, request: Request) -> int:
@@ -38,14 +38,16 @@ class Functions:
 
     @classmethod
     async def check_foreign_keys(cls):
-        return
         conn = sqlite3.connect('site.db')
         cursor = conn.execute("PRAGMA foreign_key_check;")
         violations = cursor.fetchall()
         conn.close()
         if violations:
             async with new_session() as session:
-                querydb = delete(Functions.tablename[violations[0][0]]).filter_by(id=violations[0][1])
+                try:
+                    querydb = delete(Functions.tablename[violations[0][0]]).filter_by(id=violations[0][1])
+                except InvalidRequestError:
+                    querydb = delete(Functions.tablename[violations[0][0]]).filter_by(employee_id=violations[0][1])
                 await session.execute(querydb)
                 await session.flush()
                 await session.commit()
@@ -86,6 +88,8 @@ class Functions:
                 )
             await session.commit()
             await Functions.check_foreign_keys()
+        if tablename == "crew":
+            return Inform(detail="created", field_id=None)
         return Inform(detail="created", field_id=query_field.id)
 
     """
@@ -156,7 +160,7 @@ class Functions:
                 )
             await session.commit()
             await Functions.check_foreign_keys()
-        return Inform(detail="updated")
+        return Inform(detail="updated", field_id=None)
 
     @classmethod
     async def delete_field(cls, tablename: str, field_id: int):
@@ -175,4 +179,4 @@ class Functions:
             await session.execute(querydb)
             await session.flush()
             await session.commit()
-        return Inform(detail="field deleted")
+        return Inform(detail="field deleted", field_id=None)

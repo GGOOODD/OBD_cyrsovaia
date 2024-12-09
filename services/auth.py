@@ -62,7 +62,7 @@ class Auth:
     async def logout(cls, request: Request, response: Response):
         token = request.cookies.get("token")
         if token is None:
-            return JSONResponse(Inform(detail="You already logged out").model_dump(), 200)
-        response = JSONResponse(Inform(detail="Logged out").model_dump(), 200)
+            return JSONResponse(Inform(detail="You already logged out", field_id=None).model_dump(), 200)
+        response = JSONResponse(Inform(detail="Logged out", field_id=None).model_dump(), 200)
         response.delete_cookie("token")
         return response

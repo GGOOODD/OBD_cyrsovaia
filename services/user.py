@@ -12,10 +12,16 @@ from services import Auth
 class User:
     @classmethod
     async def create_flight_history(cls, sch_flight_id: int, request: Request):
-        # check if user, add user_id in data
         user_id = await Functions.get_user_id(request)
 
-        now = datetime.now()
+        querydb = select(FlightHistoryModel).filter_by(user_id=user_id, scheduled_flight_id=sch_flight_id)
+        async with new_session() as session:
+            result = await session.execute(querydb)
+        field = result.scalars().first()
+        if field is not None:
+            return Inform(detail="Вы уже купили билет на данный рейс", field_id=None)
+
+        now = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
         querydb = select(FlightHistoryModel).filter_by(flight_id=sch_flight_id)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -29,12 +35,13 @@ class User:
                         flag = False
                         break
                 if flag:
-                    return await Functions.create_field("flight_history",
-                                                        {"user_id": user_id,
-                                                         "scheduled_flight_id": sch_flight_id,
-                                                         "payment_datetime": now,
-                                                         "seat": gen_seat})
-        return Inform(detail="all seats are reserved")
+                    await Functions.create_field("flight_history",
+                                                 {"user_id": user_id,
+                                                  "scheduled_flight_id": sch_flight_id,
+                                                  "payment_datetime": now,
+                                                  "seat": gen_seat})
+                    return Inform(detail="Билет успешно куплен, информацию о нём можно найти в истории рейсов", field_id=None)
+        return Inform(detail="Все билеты уже выкуплены", field_id=None)
 
 
     @classmethod
@@ -95,7 +102,7 @@ class User:
                 detail="Args is wrong",
             )
         await session.commit()
-        return Inform(detail="done")
+        return Inform(detail="done", field_id=None)
 
     @classmethod
     async def change_fio(cls, fio: UpdFIO, request: Request):

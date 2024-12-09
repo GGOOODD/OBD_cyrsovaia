@@ -1,8 +1,8 @@
 from fastapi import HTTPException, status, Request
 from database import *
 from schemas import *
-from sqlalchemy import select, update, delete
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select, update, delete, and_
+from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.exc import IntegrityError
 from functions import Functions
 
@@ -74,7 +74,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой страны не существует")
+            return Inform(detail="Такой страны не существует", field_id=None)
         return await Functions.create_field("settlement",
                                             {"country_id": field.id,
                                              "name": data.name,
@@ -88,7 +88,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой страны не существует")
+            return Inform(detail="Такой страны не существует", field_id=None)
         return await Functions.update_field("settlement", field_id,
                                             {"country_id": field.id,
                                              "name": data.name,
@@ -124,7 +124,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такого населённого пункта не существует")
+            return Inform(detail="Такого населённого пункта не существует", field_id=None)
         return await Functions.create_field("airport",
                                             {"settlement_id": field.id,
                                              "name": data.name,
@@ -138,7 +138,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такого населённого пункта не существует")
+            return Inform(detail="Такого населённого пункта не существует", field_id=None)
         return await Functions.update_field("airport", field_id,
                                             {"settlement_id": field.id,
                                              "name": data.name,
@@ -176,14 +176,14 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой авиакомпании не существует")
+            return Inform(detail="Такой авиакомпании не существует", field_id=None)
 
         querydb = select(AirportModel).filter_by(name=data.airportName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого аэропорта не существует")
+            return Inform(detail="Такого аэропорта не существует", field_id=None)
 
         return await Functions.create_field("flight",
                                             {"airline_id": field1.id,
@@ -197,16 +197,16 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой авиакомпании не существует")
+            return Inform(detail="Такой авиакомпании не существует", field_id=None)
 
         querydb = select(AirportModel).filter_by(name=data.airportName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого аэропорта не существует")
+            return Inform(detail="Такого аэропорта не существует", field_id=None)
 
-        return await Functions.update_field("airport", field_id,
+        return await Functions.update_field("flight", field_id,
                                             {"airline_id": field1.id,
                                              "airport_id": field2.id})
 
@@ -238,22 +238,22 @@ class Classifier:
 
     # SCHEDULED_FLIGHT_MODEL --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_sch_flight_model(cls):
+    async def get_all_scheduled_flight_model(cls):
         # check if admin
         return await Functions.get_all_from_table("scheduled_flight_model")
 
     @classmethod
-    async def create_sch_flight_model(cls, data: SchFlightModelData):
+    async def create_scheduled_flight_model(cls, data: SchFlightModelData):
         # check if admin
         return await Functions.create_field("scheduled_flight_model", data.__dict__)
 
     @classmethod
-    async def update_sch_flight_model(cls, field_id: int, data: SchFlightModelData):
+    async def update_scheduled_flight_model(cls, field_id: int, data: SchFlightModelData):
         # check if admin
         return await Functions.update_field("scheduled_flight_model", field_id, data.__dict__)
 
     @classmethod
-    async def delete_sch_flight_model(cls, field_id: id):
+    async def delete_scheduled_flight_model(cls, field_id: id):
         # check if admin
         return await Functions.delete_field("scheduled_flight_model", field_id)
 
@@ -302,7 +302,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой модели самолёта не существует")
+            return Inform(detail="Такой модели самолёта не существует", field_id=None)
         return await Functions.create_field("airplane",
                                             {"airplane_model_id": field.id,
                                              "registration_number": data.registrationNumber})
@@ -315,7 +315,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой модели самолёта не существует")
+            return Inform(detail="Такой модели самолёта не существует", field_id=None)
         return await Functions.update_field("settlement", field_id,
                                             {"airplane_model_id": field.id,
                                              "registration_number": data.registrationNumber})
@@ -394,7 +394,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой должности не существует")
+            return Inform(detail="Такой должности не существует", field_id=None)
         return await Functions.create_field("employee",
                                             {"job_title_id": field.id,
                                              "name": data.name,
@@ -410,7 +410,7 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой должности не существует")
+            return Inform(detail="Такой должности не существует", field_id=None)
         return await Functions.update_field("employee", field_id,
                                             {"job_title_id": field.id,
                                              "name": data.name,
@@ -444,7 +444,7 @@ class Classifier:
                          "name": field.employee.name,
                          "patronymic": field.employee.patronymic,
                          "registrationNumber": field.airplane.registration_number,
-                         "datetime": field.datetime,
+                         "datetime": field.datetime.strftime('%d-%m-%Y %H:%M:%S'),
                          "result": field.result})
         return data
 
@@ -456,26 +456,26 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой модели обслуживания не существует")
+            return Inform(detail="Такой модели обслуживания не существует", field_id=None)
 
         querydb = select(EmployeeModel).filter_by(name=data.name, surname=data.surname, patronymic=data.patronymic)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого сотрудника не существует")
+            return Inform(detail="Такого сотрудника не существует", field_id=None)
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такого самолёта не существует")
+            return Inform(detail="Такого самолёта не существует", field_id=None)
         return await Functions.create_field("pretrip_maintenance",
                                             {"maintenance_model_id": field1.id,
                                              "employee_id": field2.id,
                                              "airplane_id": field3.id,
-                                             "datetime": data.datetime,
+                                             "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
                                              "result": data.result})
 
     @classmethod
@@ -486,26 +486,26 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой модели обслуживания не существует")
+            return Inform(detail="Такой модели обслуживания не существует", field_id=None)
 
         querydb = select(EmployeeModel).filter_by(name=data.name, surname=data.surname, patronymic=data.patronymic)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого сотрудника не существует")
+            return Inform(detail="Такого сотрудника не существует", field_id=None)
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такого самолёта не существует")
+            return Inform(detail="Такого самолёта не существует", field_id=None)
         return await Functions.update_field("pretrip_maintenance", field_id,
                                             {"maintenance_model_id": field1.id,
                                              "employee_id": field2.id,
                                              "airplane_id": field3.id,
-                                             "datetime": data.datetime,
+                                             "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
                                              "result": data.result})
 
     @classmethod
@@ -534,8 +534,8 @@ class Classifier:
             data.append({"id": field.id,
                          "airlineName": field.flight.airline.name,
                          "airportName": field.flight.airport.name,
-                         "datetimeDeparture": field.departure_datetime,
-                         "datetimeArrival": field.arrival_datetime,
+                         "datetimeDeparture": field.departure_datetime.strftime('%d-%m-%Y %H:%M:%S'),
+                         "datetimeArrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M:%S'),
                          "registrationNumber": field.airplane.registration_number,
                          "scheduledFlightModelName": field.scheduled_flight_model.name})
         return data
@@ -543,44 +543,49 @@ class Classifier:
     @classmethod
     async def create_scheduled_flight(cls, data: ScheduledFlightData):
         # check if admin
-        querydb = select(FlightModel).options(
-            joinedload(FlightModel.airline),
-            joinedload(FlightModel.airport)
-        ).filter(
+        querydb = select(FlightModel).join(FlightModel.airport).join(FlightModel.airline).options(
+            contains_eager(FlightModel.airline),
+            contains_eager(FlightModel.airport)
+        ).filter(and_(
             AirlineModel.name == data.airlineName,
-            AirportModel.name == data.airportName
+            AirportModel.name == data.airportName)
         )
         async with new_session() as session:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такого рейса не существует")
+            return Inform(detail="Такого рейса не существует", field_id=None)
 
-        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
+        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNumber)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого самолёта не существует")
+            return Inform(detail="Такого самолёта не существует", field_id=None)
 
         querydb = select(ScheduledFlightModelModel).filter_by(name=data.scheduledFlightModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такой модели назначенного рейса не существует")
+            return Inform(detail="Такой модели назначенного рейса не существует", field_id=None)
         inform = await Functions.create_field("scheduled_flight",
                                               {"flight_id": field1.id,
                                                "airplane_id": field2.id,
                                                "scheduled_flight_model_id": field3.id,
-                                               "departure_datetime": data.datetimeDeparture,
-                                               "arrival_datetime": data.datetimeArrival})
+                                               "departure_datetime": datetime.strptime(data.datetimeDeparture, '%d-%m-%Y %H:%M:%S'),
+                                               "arrival_datetime": datetime.strptime(data.datetimeArrival, '%d-%m-%Y %H:%M:%S')})
 
+        #async with new_session() as session:
         for employee_id in data.crew:
             await Functions.create_field("crew",
                                          {"scheduled_flight_id": inform.field_id,
                                           "employee_id": employee_id})
-        return Inform(detail="created")
+            # crew = CrewModel(scheduled_flight_id=inform.field_id, employee_id=employee_id)
+            # session.add(crew)
+            # session.commit()
+            # await Functions.check_foreign_keys()
+        return Inform(detail="created", field_id=inform.field_id)
 
     @classmethod
     async def update_scheduled_flight(cls, field_id: int, data: ScheduledFlightData):
@@ -596,38 +601,46 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такого рейса не существует")
+            return Inform(detail="Такого рейса не существует", field_id=None)
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого самолёта не существует")
+            return Inform(detail="Такого самолёта не существует", field_id=None)
 
         querydb = select(ScheduledFlightModelModel).filter_by(name=data.scheduledFlightModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такой модели назначенного рейса не существует")
+            return Inform(detail="Такой модели назначенного рейса не существует", field_id=None)
         inform = await Functions.update_field("scheduled_flight", field_id,
                                               {"flight_id": field1.id,
                                                "airplane_id": field2.id,
                                                "scheduled_flight_model_id": field3.id,
-                                               "departure_datetime": data.datetimeDeparture,
-                                               "arrival_datetime": data.datetimeArrival})
+                                               "departure_datetime": datetime.strptime(data.datetimeDeparture, '%d-%m-%Y %H:%M:%S'),
+                                               "arrival_datetime": datetime.strptime(data.datetimeArrival, '%d-%m-%Y %H:%M:%S')})
 
         querydb = delete(CrewModel).filter_by(scheduled_flight_id=inform.field_id)
-        async with new_session() as session:
-            await session.execute(querydb)
+        #async with new_session() as session:
+        await session.execute(querydb)
         for employee_id in data.crew:
             await Functions.create_field("crew",
                                          {"scheduled_flight_id": inform.field_id,
                                           "employee_id": employee_id})
-        return Inform(detail="created")
+            #crew = CrewModel(scheduled_flight_id=inform.field_id, employee_id=employee_id)
+            #session.add(crew)
+            #await session.commit()
+            #await Functions.check_foreign_keys()
+        return Inform(detail="created", field_id=None)
 
     @classmethod
     async def delete_scheduled_flight(cls, field_id: id):
         # check if admin
+        querydb = delete(CrewModel).filter_by(scheduled_flight_id=field_id)
+        async with new_session() as session:
+            await session.execute(querydb)
+            await session.commit()
         return await Functions.delete_field("scheduled_flight", field_id)

@@ -5,7 +5,7 @@ from services import User
 router = APIRouter(tags=["User"], prefix="/user")
 
 
-@router.post("/create_flight_history/{sch_flight_id]", response_model=Inform, status_code=status.HTTP_201_CREATED)
+@router.post("/create_flight_history/{sch_flight_id}", response_model=Inform, status_code=status.HTTP_201_CREATED)
 async def create_flight_histiory(sch_flight_id: int, request: Request):
     return await User.create_flight_history(sch_flight_id, request)
 

@@ -132,24 +132,24 @@ async def delete_airline(field_id: int):
 
 
 # SCHEDULED_FLIGHT_MODEL -----------------------------------------------------------------------------------------
-@router.get("/get_all_sch_flight_model", status_code=status.HTTP_200_OK)
-async def get_all_sch_flight_model():
-    return await Classifier.get_all_sch_flight_model()
+@router.get("/get_all_scheduled_flight_model", status_code=status.HTTP_200_OK)
+async def get_all_scheduled_flight_model():
+    return await Classifier.get_all_scheduled_flight_model()
 
 
-@router.post("/create_sch_flight_model", response_model=Inform, status_code=status.HTTP_201_CREATED)
-async def create_sch_flight_model(data: SchFlightModelData):
-    return await Classifier.create_sch_flight_model(data)
+@router.post("/create_scheduled_flight_model", response_model=Inform, status_code=status.HTTP_201_CREATED)
+async def create_scheduled_flight_model(data: SchFlightModelData):
+    return await Classifier.create_scheduled_flight_model(data)
 
 
-@router.put("/update_sch_flight_model/{field_id}", response_model=Inform, status_code=status.HTTP_200_OK)
-async def update_sch_flight_model(field_id: int, data: SchFlightModelData):
-    return await Classifier.update_sch_flight_model(field_id, data)
+@router.put("/update_scheduled_flight_model/{field_id}", response_model=Inform, status_code=status.HTTP_200_OK)
+async def update_scheduled_flight_model(field_id: int, data: SchFlightModelData):
+    return await Classifier.update_scheduled_flight_model(field_id, data)
 
 
-@router.delete("/delete_sch_flight_model/{field_id}", response_model=Inform, status_code=status.HTTP_200_OK)
-async def delete_sch_flight_model(field_id: int):
-    return await Classifier.delete_sch_flight_model(field_id)
+@router.delete("/delete_scheduled_flight_model/{field_id}", response_model=Inform, status_code=status.HTTP_200_OK)
+async def delete_scheduled_flight_model(field_id: int):
+    return await Classifier.delete_scheduled_flight_model(field_id)
 
 
 # AIRPLANE_MODEL -----------------------------------------------------------------------------------------------
