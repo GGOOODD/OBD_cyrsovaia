@@ -87,42 +87,10 @@ class Functions:
                     detail="Args is wrong",
                 )
             await session.commit()
-            await Functions.check_foreign_keys()
+            # await Functions.check_foreign_keys()
         if tablename == "crew":
             return Inform(detail="created", field_id=None)
         return Inform(detail="created", field_id=query_field.id)
-
-    """
-    @classmethod
-    async def get_by_id(cls, tablename: str, field_id: int):
-        Classifier.check_tablename(tablename)
-
-        querydb = select(Classifier.tablename[tablename]).filter_by(id=field_id)
-        async with new_session() as session:
-            result = await session.execute(querydb)
-        field = result.scalars().first()
-        if field is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This field does not exist",
-            )
-        return field
-
-    @classmethod
-    async def get_by_name(cls, tablename: str, field_name: str):
-        Classifier.check_tablename(tablename)
-
-        querydb = select(Classifier.tablename[tablename]).filter_by(name=field_name)
-        async with new_session() as session:
-            result = await session.execute(querydb)
-        field = result.scalars().first()
-        if field is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="This field does not exist",
-            )
-        return field
-    """
 
     @classmethod
     async def get_all_from_table(cls, tablename: str):
@@ -159,7 +127,7 @@ class Functions:
                     detail="Args is wrong",
                 )
             await session.commit()
-            await Functions.check_foreign_keys()
+            # await Functions.check_foreign_keys()
         return Inform(detail="updated", field_id=None)
 
     @classmethod

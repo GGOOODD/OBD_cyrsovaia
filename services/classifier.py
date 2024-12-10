@@ -47,6 +47,10 @@ class Classifier:
     @classmethod
     async def delete_country(cls, field_id: id):
         # check if admin
+        querydb = delete(SettlementModel).filter_by(country_id=field_id)
+        async with new_session() as session:
+            await session.execute(querydb)
+            await session.commit()
         return await Functions.delete_field("country", field_id)
 
     # SETTLEMENT ----------------------------------------------------------------------------------------------------
@@ -74,7 +78,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой страны не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой страны не существует",
+            )
         return await Functions.create_field("settlement",
                                             {"country_id": field.id,
                                              "name": data.name,
@@ -88,7 +95,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой страны не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой страны не существует",
+            )
         return await Functions.update_field("settlement", field_id,
                                             {"country_id": field.id,
                                              "name": data.name,
@@ -97,7 +107,7 @@ class Classifier:
     @classmethod
     async def delete_settlement(cls, field_id: id):
         # check if admin
-        await Functions.delete_field("settlement", field_id)
+        return await Functions.delete_field("settlement", field_id)
 
     # AIRPORT ------------------------------------------------------------------------------------------------------
     @classmethod
@@ -124,7 +134,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такого населённого пункта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого населённого пункта не существует",
+            )
         return await Functions.create_field("airport",
                                             {"settlement_id": field.id,
                                              "name": data.name,
@@ -138,7 +151,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такого населённого пункта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого населённого пункта не существует",
+            )
         return await Functions.update_field("airport", field_id,
                                             {"settlement_id": field.id,
                                              "name": data.name,
@@ -147,7 +163,7 @@ class Classifier:
     @classmethod
     async def delete_airport(cls, field_id: id):
         # check if admin
-        await Functions.delete_field("airport", field_id)
+        return await Functions.delete_field("airport", field_id)
 
     # FLIGHT ------------------------------------------------------------------------------------------------------
     @classmethod
@@ -176,14 +192,20 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой авиакомпании не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой авиакомпании не существует",
+            )
 
         querydb = select(AirportModel).filter_by(name=data.airportName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого аэропорта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого аэропорта не существует",
+            )
 
         return await Functions.create_field("flight",
                                             {"airline_id": field1.id,
@@ -197,14 +219,20 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой авиакомпании не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой авиакомпании не существует",
+            )
 
         querydb = select(AirportModel).filter_by(name=data.airportName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого аэропорта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого аэропорта не существует",
+            )
 
         return await Functions.update_field("flight", field_id,
                                             {"airline_id": field1.id,
@@ -213,7 +241,7 @@ class Classifier:
     @classmethod
     async def delete_flight(cls, field_id: id):
         # check if admin
-        await Functions.delete_field("flight", field_id)
+        return await Functions.delete_field("flight", field_id)
 
     # AIRLINE ----------------------------------------------------------------------------------------------------
     @classmethod
@@ -302,7 +330,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой модели самолёта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой модели самолёта не существует",
+            )
         return await Functions.create_field("airplane",
                                             {"airplane_model_id": field.id,
                                              "registration_number": data.registrationNumber})
@@ -315,7 +346,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой модели самолёта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой модели самолёта не существует",
+            )
         return await Functions.update_field("settlement", field_id,
                                             {"airplane_model_id": field.id,
                                              "registration_number": data.registrationNumber})
@@ -394,7 +428,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой должности не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой должности не существует",
+            )
         return await Functions.create_field("employee",
                                             {"job_title_id": field.id,
                                              "name": data.name,
@@ -410,7 +447,10 @@ class Classifier:
             result = await session.execute(querydb)
         field = result.scalars().first()
         if field is None:
-            return Inform(detail="Такой должности не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой должности не существует",
+            )
         return await Functions.update_field("employee", field_id,
                                             {"job_title_id": field.id,
                                              "name": data.name,
@@ -456,21 +496,30 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой модели обслуживания не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой модели обслуживания не существует",
+            )
 
         querydb = select(EmployeeModel).filter_by(name=data.name, surname=data.surname, patronymic=data.patronymic)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого сотрудника не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого сотрудника не существует",
+            )
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такого самолёта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого самолёта не существует",
+            )
         return await Functions.create_field("pretrip_maintenance",
                                             {"maintenance_model_id": field1.id,
                                              "employee_id": field2.id,
@@ -486,21 +535,30 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такой модели обслуживания не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой модели обслуживания не существует",
+            )
 
         querydb = select(EmployeeModel).filter_by(name=data.name, surname=data.surname, patronymic=data.patronymic)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого сотрудника не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого сотрудника не существует",
+            )
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такого самолёта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого самолёта не существует",
+            )
         return await Functions.update_field("pretrip_maintenance", field_id,
                                             {"maintenance_model_id": field1.id,
                                              "employee_id": field2.id,
@@ -554,21 +612,30 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такого рейса не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого рейса не существует",
+            )
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNumber)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого самолёта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого самолёта не существует",
+            )
 
         querydb = select(ScheduledFlightModelModel).filter_by(name=data.scheduledFlightModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такой модели назначенного рейса не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой модели назначенного рейса не существует",
+            )
         inform = await Functions.create_field("scheduled_flight",
                                               {"flight_id": field1.id,
                                                "airplane_id": field2.id,
@@ -601,21 +668,30 @@ class Classifier:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
         if field1 is None:
-            return Inform(detail="Такого рейса не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого рейса не существует",
+            )
 
         querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
         if field2 is None:
-            return Inform(detail="Такого самолёта не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такого самолёта не существует",
+            )
 
         querydb = select(ScheduledFlightModelModel).filter_by(name=data.scheduledFlightModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
         if field3 is None:
-            return Inform(detail="Такой модели назначенного рейса не существует", field_id=None)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Такой модели назначенного рейса не существует",
+            )
         inform = await Functions.update_field("scheduled_flight", field_id,
                                               {"flight_id": field1.id,
                                                "airplane_id": field2.id,

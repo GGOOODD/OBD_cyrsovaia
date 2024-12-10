@@ -20,11 +20,11 @@ async def get_user_info(request: Request):
     return await User.get_user_info(request)
 
 
-@router.get("/change_password", response_model=Inform, status_code=status.HTTP_200_OK)
+@router.put("/change_password", response_model=Inform, status_code=status.HTTP_200_OK)
 async def change_password(password: UpdPassword, request: Request):
     return await User.change_password(password, request)
 
 
-@router.get("/change_fio", response_model=Inform, status_code=status.HTTP_200_OK)
+@router.put("/change_fio", response_model=Inform, status_code=status.HTTP_200_OK)
 async def change_fio(fio: UpdFIO, request: Request):
     return await User.change_fio(fio, request)

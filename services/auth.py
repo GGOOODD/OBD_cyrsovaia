@@ -35,7 +35,13 @@ class Auth:
                     "Can't add user to the database, possible: email exists"
                 )
             await session.commit()
-            return GetUser(**user_field.__dict__)
+
+            response = JSONResponse(GetUser(**user_field.__dict__).model_dump(), 200)
+            response.set_cookie(
+                key="token",
+                value=jwt.encode({"id": user_field.id}, Auth.key, Auth.algorithm)
+            )
+            return response
 
     @classmethod
     async def login(cls, data: LogInfo):
