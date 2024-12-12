@@ -181,7 +181,7 @@ class Classifier:
         for field in fields:
             data.append({"id": field.id,
                          "airlineName": field.airline.name,
-                         "settlementName": field.airport.name})
+                         "airportName": field.airport.name})
         return data
 
     @classmethod
@@ -306,7 +306,7 @@ class Classifier:
         # check if admin
         return await Functions.delete_field("airplane_model", field_id)
 
-    # AIRPLANE_MODEL --------------------------------------------------------------------------------------
+    # AIRPLANE -----------------------------------------------------------------------------------------------
     @classmethod
     async def get_all_airplane(cls):
         # check if admin
@@ -350,7 +350,7 @@ class Classifier:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Такой модели самолёта не существует",
             )
-        return await Functions.update_field("settlement", field_id,
+        return await Functions.update_field("airplane", field_id,
                                             {"airplane_model_id": field.id,
                                              "registration_number": data.registrationNumber})
 
