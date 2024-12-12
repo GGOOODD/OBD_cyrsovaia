@@ -511,7 +511,7 @@ class Classifier:
                 detail="Такого сотрудника не существует",
             )
 
-        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
+        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNumber)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
@@ -520,12 +520,18 @@ class Classifier:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Такого самолёта не существует",
             )
-        return await Functions.create_field("pretrip_maintenance",
-                                            {"maintenance_model_id": field1.id,
-                                             "employee_id": field2.id,
-                                             "airplane_id": field3.id,
-                                             "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
-                                             "result": data.result})
+        try:
+            return await Functions.create_field("pretrip_maintenance",
+                                                {"maintenance_model_id": field1.id,
+                                                 "employee_id": field2.id,
+                                                 "airplane_id": field3.id,
+                                                 "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
+                                                 "result": data.result})
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверный формат даты",
+            )
 
     @classmethod
     async def update_pretrip_maintenance(cls, field_id: int, data: PretripMaintenanceData):
@@ -550,7 +556,7 @@ class Classifier:
                 detail="Такого сотрудника не существует",
             )
 
-        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
+        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNumber)
         async with new_session() as session:
             result = await session.execute(querydb)
         field3 = result.scalars().first()
@@ -559,12 +565,18 @@ class Classifier:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Такого самолёта не существует",
             )
-        return await Functions.update_field("pretrip_maintenance", field_id,
-                                            {"maintenance_model_id": field1.id,
-                                             "employee_id": field2.id,
-                                             "airplane_id": field3.id,
-                                             "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
-                                             "result": data.result})
+        try:
+            return await Functions.update_field("pretrip_maintenance", field_id,
+                                                {"maintenance_model_id": field1.id,
+                                                 "employee_id": field2.id,
+                                                 "airplane_id": field3.id,
+                                                 "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
+                                                 "result": data.result})
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверный формат даты",
+            )
 
     @classmethod
     async def delete_pretrip_maintenance(cls, field_id: id):

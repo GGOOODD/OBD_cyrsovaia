@@ -68,8 +68,7 @@ class PretripMaintenanceData(BaseModel):
     surname: constr(max_length=100)
     name: constr(max_length=100)
     patronymic: constr(max_length=100)
-    experience: constr(max_length=50)
-    registrationNubmer: constr(max_length=100)
+    registrationNumber: constr(max_length=100)
     datetime: constr(max_length=100)
     result: constr(max_length=100)
 
