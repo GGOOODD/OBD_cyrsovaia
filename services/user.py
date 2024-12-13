@@ -21,14 +21,14 @@ class User:
         if field is not None:
             return Inform(detail="Вы уже купили билет на данный рейс", field_id=None)
 
-        now = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
-        querydb = select(FlightHistoryModel).filter_by(flight_id=sch_flight_id)
+        now = datetime.strptime(datetime.now().strftime('%d-%m-%Y %H:%M'), '%d-%m-%Y %H:%M')
+        querydb = select(FlightHistoryModel).filter_by(scheduled_flight_id=sch_flight_id)
         async with new_session() as session:
             result = await session.execute(querydb)
         fields = result.scalars().all()
         for literal in "ABCDEF":
             for number in range(1, 28):
-                gen_seat = literal.join(str(number))
+                gen_seat = literal + str(number)
                 flag = True
                 for field in fields:
                     if field.seat == gen_seat:
@@ -42,7 +42,6 @@ class User:
                                                   "seat": gen_seat})
                     return Inform(detail="Билет успешно куплен, информацию о нём можно найти в истории рейсов", field_id=None)
         return Inform(detail="Все билеты уже выкуплены", field_id=None)
-
 
     @classmethod
     async def get_all_flight_history(cls, request: Request):
@@ -65,11 +64,11 @@ class User:
         data = []
         for field in fields:
             data.append({"airline": field.scheduled_flight.flight.airline.name,
-                         "destination": field.scheduled_flight.flight.airline.settlement.name,
-                         "airport": field.scheduled_flight.flight.airline.name,
-                         "payment_datetime": field.payment_datetime,
+                         "destination": field.scheduled_flight.flight.airport.settlement.name,
+                         "airport": field.scheduled_flight.flight.airport.name,
+                         "payment_datetime": field.payment_datetime.strftime('%d-%m-%Y %H:%M'),
                          "seat": field.seat})
-        return fields
+        return data
 
     @classmethod
     async def get_user_info(cls, request: Request):

@@ -413,7 +413,7 @@ class Classifier:
         data = []
         for field in fields:
             data.append({"id": field.id,
-                         "JobTitleName": field.job_title.name,
+                         "jobTitleName": field.job_title.name,
                          "surname": field.surname,
                          "name": field.name,
                          "patronymic": field.patronymic,
@@ -484,7 +484,7 @@ class Classifier:
                          "name": field.employee.name,
                          "patronymic": field.employee.patronymic,
                          "registrationNumber": field.airplane.registration_number,
-                         "datetime": field.datetime.strftime('%d-%m-%Y %H:%M:%S'),
+                         "datetime": field.datetime.strftime('%d-%m-%Y %H:%M'),
                          "result": field.result})
         return data
 
@@ -525,7 +525,7 @@ class Classifier:
                                                 {"maintenance_model_id": field1.id,
                                                  "employee_id": field2.id,
                                                  "airplane_id": field3.id,
-                                                 "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
+                                                 "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M'),
                                                  "result": data.result})
         except ValueError:
             raise HTTPException(
@@ -570,7 +570,7 @@ class Classifier:
                                                 {"maintenance_model_id": field1.id,
                                                  "employee_id": field2.id,
                                                  "airplane_id": field3.id,
-                                                 "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M:%S'),
+                                                 "datetime": datetime.strptime(data.datetime, '%d-%m-%Y %H:%M'),
                                                  "result": data.result})
         except ValueError:
             raise HTTPException(
@@ -593,21 +593,37 @@ class Classifier:
             joinedload(ScheduledFlightModel.flight)
             .joinedload(FlightModel.airport),
             joinedload(ScheduledFlightModel.airplane),
-            joinedload(ScheduledFlightModel.scheduled_flight_model)
+            joinedload(ScheduledFlightModel.scheduled_flight_model),
+            joinedload(ScheduledFlightModel.crew)
+            .joinedload(CrewModel.employee)
+            .joinedload(EmployeeModel.job_title)
         )
         async with new_session() as session:
             result = await session.execute(querydb)
-        fields = result.scalars().all()
+        fields = result.unique().scalars().all()
 
         data = []
         for field in fields:
-            data.append({"id": field.id,
-                         "airlineName": field.flight.airline.name,
-                         "airportName": field.flight.airport.name,
-                         "datetimeDeparture": field.departure_datetime.strftime('%d-%m-%Y %H:%M:%S'),
-                         "datetimeArrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M:%S'),
-                         "registrationNumber": field.airplane.registration_number,
-                         "scheduledFlightModelName": field.scheduled_flight_model.name})
+            flight_data = {
+                "id": field.id,
+                "airlineName": field.flight.airline.name,
+                "airportName": field.flight.airport.name,
+                "datetimeDeparture": field.departure_datetime.strftime('%d-%m-%Y %H:%M'),
+                "datetimeArrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M'),
+                "registrationNumber": field.airplane.registration_number,
+                "scheduledFlightModelName": field.scheduled_flight_model.name,
+                "crew": []
+            }
+            for crew_member in field.crew:
+                employee_el = crew_member.employee
+                flight_data["crew"].append({
+                    "employeeId": employee_el.id,
+                    "name": employee_el.name,
+                    "surname": employee_el.surname,
+                    "patronymic": employee_el.patronymic,
+                    "jobTitle": employee_el.job_title.name
+                })
+            data.append(flight_data)
         return data
 
     @classmethod
@@ -648,22 +664,24 @@ class Classifier:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Такой модели назначенного рейса не существует",
             )
-        inform = await Functions.create_field("scheduled_flight",
-                                              {"flight_id": field1.id,
-                                               "airplane_id": field2.id,
-                                               "scheduled_flight_model_id": field3.id,
-                                               "departure_datetime": datetime.strptime(data.datetimeDeparture, '%d-%m-%Y %H:%M:%S'),
-                                               "arrival_datetime": datetime.strptime(data.datetimeArrival, '%d-%m-%Y %H:%M:%S')})
+        try:
+            inform = await Functions.create_field("scheduled_flight",
+                                                  {"flight_id": field1.id,
+                                                   "airplane_id": field2.id,
+                                                   "scheduled_flight_model_id": field3.id,
+                                                   "departure_datetime": datetime.strptime(data.datetimeDeparture, '%d-%m-%Y %H:%M'),
+                                                   "arrival_datetime": datetime.strptime(data.datetimeArrival, '%d-%m-%Y %H:%M')})
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверный формат даты",
+            )
 
-        #async with new_session() as session:
-        for employee_id in data.crew:
-            await Functions.create_field("crew",
-                                         {"scheduled_flight_id": inform.field_id,
-                                          "employee_id": employee_id})
-            # crew = CrewModel(scheduled_flight_id=inform.field_id, employee_id=employee_id)
-            # session.add(crew)
-            # session.commit()
-            # await Functions.check_foreign_keys()
+        async with new_session() as session:
+            for employee_id in data.crew:
+                crew_field = CrewModel(scheduled_flight_id=inform.field_id, employee_id=employee_id)
+                session.add(crew_field)
+            await session.commit()
         return Inform(detail="created", field_id=inform.field_id)
 
     @classmethod
@@ -672,10 +690,11 @@ class Classifier:
         querydb = select(FlightModel).options(
             joinedload(FlightModel.airline),
             joinedload(FlightModel.airport)
-        ).filter(
+        ).join(AirlineModel).join(AirportModel).filter(
             AirlineModel.name == data.airlineName,
             AirportModel.name == data.airportName
         )
+        print(data.crew)
         async with new_session() as session:
             result = await session.execute(querydb)
         field1 = result.scalars().first()
@@ -685,7 +704,7 @@ class Classifier:
                 detail="Такого рейса не существует",
             )
 
-        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNubmer)
+        querydb = select(AirplaneModel).filter_by(registration_number=data.registrationNumber)
         async with new_session() as session:
             result = await session.execute(querydb)
         field2 = result.scalars().first()
@@ -704,25 +723,27 @@ class Classifier:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Такой модели назначенного рейса не существует",
             )
-        inform = await Functions.update_field("scheduled_flight", field_id,
-                                              {"flight_id": field1.id,
-                                               "airplane_id": field2.id,
-                                               "scheduled_flight_model_id": field3.id,
-                                               "departure_datetime": datetime.strptime(data.datetimeDeparture, '%d-%m-%Y %H:%M:%S'),
-                                               "arrival_datetime": datetime.strptime(data.datetimeArrival, '%d-%m-%Y %H:%M:%S')})
+        try:
+            inform = await Functions.update_field("scheduled_flight", field_id,
+                                                  {"flight_id": field1.id,
+                                                   "airplane_id": field2.id,
+                                                   "scheduled_flight_model_id": field3.id,
+                                                   "departure_datetime": datetime.strptime(data.datetimeDeparture, '%d-%m-%Y %H:%M'),
+                                                   "arrival_datetime": datetime.strptime(data.datetimeArrival, '%d-%m-%Y %H:%M')})
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Неверный формат даты",
+            )
 
         querydb = delete(CrewModel).filter_by(scheduled_flight_id=inform.field_id)
-        #async with new_session() as session:
-        await session.execute(querydb)
-        for employee_id in data.crew:
-            await Functions.create_field("crew",
-                                         {"scheduled_flight_id": inform.field_id,
-                                          "employee_id": employee_id})
-            #crew = CrewModel(scheduled_flight_id=inform.field_id, employee_id=employee_id)
-            #session.add(crew)
-            #await session.commit()
-            #await Functions.check_foreign_keys()
-        return Inform(detail="created", field_id=None)
+        async with new_session() as session:
+            await session.execute(querydb)
+            for employee_id in data.crew:
+                crew_field = CrewModel(scheduled_flight_id=inform.field_id, employee_id=employee_id)
+                session.add(crew_field)
+            await session.commit()
+        return Inform(detail="updated", field_id=inform.field_id)
 
     @classmethod
     async def delete_scheduled_flight(cls, field_id: id):

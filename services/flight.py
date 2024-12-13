@@ -35,8 +35,8 @@ class Flight:
                          "country": field.flight.airport.settlement.country.name,
                          "destination": field.flight.airport.settlement.name,
                          "airport": field.flight.airport.name,
-                         "departure": field.departure_datetime.strftime('%d-%m-%Y %H:%M:%S'),
-                         "arrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M:%S')})
+                         "departure": field.departure_datetime.strftime('%d-%m-%Y %H:%M'),
+                         "arrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M')})
 
         return data
 
@@ -64,8 +64,8 @@ class Flight:
                 "country": field.flight.airport.settlement.country.name,
                 "destination": field.flight.airport.settlement.name,
                 "airport": field.flight.airport.name,
-                "departure": field.departure_datetime.strftime('%d-%m-%Y %H:%M:%S'),
-                "arrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M:%S'),
+                "departure": field.departure_datetime.strftime('%d-%m-%Y %H:%M'),
+                "arrival": field.arrival_datetime.strftime('%d-%m-%Y %H:%M'),
                 "airplane": field.airplane.airplane_model.name,
                 "scheduled_flight_model": field.scheduled_flight_model.name,
                 "crew": []}

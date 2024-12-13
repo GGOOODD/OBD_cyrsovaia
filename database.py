@@ -137,6 +137,7 @@ class ScheduledFlightModel(Model):
     flight: Mapped["FlightModel"] = relationship()
     scheduled_flight_model: Mapped["ScheduledFlightModelModel"] = relationship()
     airplane: Mapped["AirplaneModel"] = relationship()
+    crew: Mapped[list["CrewModel"]] = relationship(uselist=True)
 
 
 class UserModel(Model):

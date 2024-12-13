@@ -128,7 +128,7 @@ class Functions:
                 )
             await session.commit()
             # await Functions.check_foreign_keys()
-        return Inform(detail="updated", field_id=None)
+        return Inform(detail="updated", field_id=field.id)
 
     @classmethod
     async def delete_field(cls, tablename: str, field_id: int):
