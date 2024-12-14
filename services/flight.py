@@ -8,23 +8,15 @@ from functions import Functions
 
 
 class Flight:
-
-    @classmethod
-    async def create_scheduled_flight(cls, info: ScheduledFlightInfo):
-
-        # check if admin
-
-        #return await Functions.create_field(tablename, data.__dict__)
-        return
-
     @classmethod
     async def get_all_scheduled_flight(cls):
+        current_time = datetime.now()
         querydb = select(ScheduledFlightModel).options(
             joinedload(ScheduledFlightModel.flight)
             .joinedload(FlightModel.airport)
             .joinedload(AirportModel.settlement)
             .joinedload(SettlementModel.country)
-        )
+        ).where(ScheduledFlightModel.departure_datetime > current_time)
         async with new_session() as session:
             result = await session.execute(querydb)
         fields = result.scalars().all()
@@ -85,19 +77,3 @@ class Flight:
                                  "job_title": fieldi.employee.job_title.name})
 
         return data
-
-
-
-    @classmethod
-    async def update_scheduled_flight(cls, field_id: int, info: ScheduledFlightInfo):
-
-        # check if admin
-
-        return await Functions.update_field("scheduled_flight", field_id, info.__dict__)
-
-    @classmethod
-    async def delete__scheduled_flight(cls, field_id: int):
-
-        # check if admin
-
-        return await Functions.delete_field("scheduled_flight", field_id)

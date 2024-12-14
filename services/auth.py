@@ -15,7 +15,7 @@ class Auth:
         if data.password != data.repeat_password:
             raise HTTPException(
                 status.HTTP_422_UNPROCESSABLE_ENTITY,
-                "passwords don't match"
+                "Пароли не совпадают"
             )
 
         user_field = UserModel(
@@ -23,7 +23,8 @@ class Auth:
             surname=data.surname,
             patronymic=data.patronymic,
             email=data.email,
-            password=jwt.encode({"password": data.password}, Auth.key, Auth.algorithm)
+            password=jwt.encode({"password": data.password}, Auth.key, Auth.algorithm),
+            admin=False
         )
         async with new_session() as session:
             session.add(user_field)
@@ -32,7 +33,7 @@ class Auth:
             except IntegrityError:
                 raise HTTPException(
                     status.HTTP_400_BAD_REQUEST,
-                    "Can't add user to the database, possible: email exists"
+                    "Данная почта уже зарегистрирована"
                 )
             await session.commit()
 
@@ -54,7 +55,7 @@ class Auth:
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="wrong mail/password",
+                detail="Неверная почта/пароль",
             )
 
         response = JSONResponse(GetUser(**user.__dict__).model_dump(), 200)

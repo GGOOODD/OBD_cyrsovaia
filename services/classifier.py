@@ -14,39 +14,46 @@ class Classifier:
         return await Functions.get_all_from_table("shop")
 
     @classmethod
-    async def create_shop(cls, data: ShopData):
-        # check if admin
+    async def create_shop(cls, data: ShopData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("shop", data.__dict__)
 
     @classmethod
-    async def update_shop(cls, field_id: int, data: ShopData):
-        # check if admin
+    async def update_shop(cls, field_id: int, data: ShopData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("shop", field_id, data.__dict__)
 
     @classmethod
-    async def delete_shop(cls, field_id: id):
-        # check if admin
+    async def delete_shop(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("shop", field_id)
 
     # COUNTRY ----------------------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_country(cls):
-        # check if admin
+    async def get_all_country(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.get_all_from_table("country")
 
     @classmethod
-    async def create_country(cls, data: CountryData):
-        # check if admin
+    async def create_country(cls, data: CountryData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("country", data.__dict__)
 
     @classmethod
-    async def update_country(cls, field_id: int, data: CountryData):
-        # check if admin
+    async def update_country(cls, field_id: int, data: CountryData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("country", field_id, data.__dict__)
 
     @classmethod
-    async def delete_country(cls, field_id: id):
-        # check if admin
+    async def delete_country(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = delete(SettlementModel).filter_by(country_id=field_id)
         async with new_session() as session:
             await session.execute(querydb)
@@ -55,8 +62,9 @@ class Classifier:
 
     # SETTLEMENT ----------------------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_settlement(cls):
-        # check if admin
+    async def get_all_settlement(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(SettlementModel).options(joinedload(SettlementModel.country))
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -71,8 +79,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_settlement(cls, data: SettlementData):
-        # check if admin
+    async def create_settlement(cls, data: SettlementData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(CountryModel).filter_by(name=data.countryName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -88,8 +97,9 @@ class Classifier:
                                              "type": data.settlementType})
 
     @classmethod
-    async def update_settlement(cls, field_id: int, data: SettlementData):
-        # check if admin
+    async def update_settlement(cls, field_id: int, data: SettlementData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(CountryModel).filter_by(name=data.countryName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -105,14 +115,16 @@ class Classifier:
                                              "type": data.settlementType})
 
     @classmethod
-    async def delete_settlement(cls, field_id: id):
-        # check if admin
+    async def delete_settlement(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("settlement", field_id)
 
     # AIRPORT ------------------------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_airport(cls):
-        # check if admin
+    async def get_all_airport(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(AirportModel).options(joinedload(AirportModel.settlement))
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -127,8 +139,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_airport(cls, data: AirportData):
-        # check if admin
+    async def create_airport(cls, data: AirportData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(SettlementModel).filter_by(name=data.settlementName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -144,8 +157,9 @@ class Classifier:
                                              "address": data.address})
 
     @classmethod
-    async def update_airport(cls, field_id: int, data: AirportData):
-        # check if admin
+    async def update_airport(cls, field_id: int, data: AirportData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(SettlementModel).filter_by(name=data.settlementName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -161,14 +175,16 @@ class Classifier:
                                              "address": data.address})
 
     @classmethod
-    async def delete_airport(cls, field_id: id):
-        # check if admin
+    async def delete_airport(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("airport", field_id)
 
     # FLIGHT ------------------------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_flight(cls):
-        # check if admin
+    async def get_all_flight(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(FlightModel).options(
             joinedload(FlightModel.airline),
             joinedload(FlightModel.airport)
@@ -185,8 +201,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_flight(cls, data: FlightData):
-        # check if admin
+    async def create_flight(cls, data: FlightData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(AirlineModel).filter_by(name=data.airlineName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -212,8 +229,9 @@ class Classifier:
                                              "airport_id": field2.id})
 
     @classmethod
-    async def update_flight(cls, field_id: int, data: FlightData):
-        # check if admin
+    async def update_flight(cls, field_id: int, data: FlightData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(AirlineModel).filter_by(name=data.airlineName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -239,77 +257,91 @@ class Classifier:
                                              "airport_id": field2.id})
 
     @classmethod
-    async def delete_flight(cls, field_id: id):
-        # check if admin
+    async def delete_flight(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("flight", field_id)
 
     # AIRLINE ----------------------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_airline(cls):
-        # check if admin
+    async def get_all_airline(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.get_all_from_table("airline")
 
     @classmethod
-    async def create_airline(cls, data: AirlineData):
-        # check if admin
+    async def create_airline(cls, data: AirlineData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("airline", data.__dict__)
 
     @classmethod
-    async def update_airline(cls, field_id: int, data: AirlineData):
-        # check if admin
+    async def update_airline(cls, field_id: int, data: AirlineData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("airline", field_id, data.__dict__)
 
     @classmethod
-    async def delete_airline(cls, field_id: id):
-        # check if admin
+    async def delete_airline(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("airline", field_id)
 
     # SCHEDULED_FLIGHT_MODEL --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_scheduled_flight_model(cls):
-        # check if admin
+    async def get_all_scheduled_flight_model(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.get_all_from_table("scheduled_flight_model")
 
     @classmethod
-    async def create_scheduled_flight_model(cls, data: SchFlightModelData):
-        # check if admin
+    async def create_scheduled_flight_model(cls, data: SchFlightModelData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("scheduled_flight_model", data.__dict__)
 
     @classmethod
-    async def update_scheduled_flight_model(cls, field_id: int, data: SchFlightModelData):
-        # check if admin
+    async def update_scheduled_flight_model(cls, field_id: int, data: SchFlightModelData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("scheduled_flight_model", field_id, data.__dict__)
 
     @classmethod
-    async def delete_scheduled_flight_model(cls, field_id: id):
-        # check if admin
+    async def delete_scheduled_flight_model(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("scheduled_flight_model", field_id)
 
     # AIRPLANE_MODEL --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_airplane_model(cls):
-        # check if admin
+    async def get_all_airplane_model(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.get_all_from_table("airplane_model")
 
     @classmethod
-    async def create_airplane_model(cls, data: AirplaneModelData):
-        # check if admin
+    async def create_airplane_model(cls, data: AirplaneModelData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("airplane_model", data.__dict__)
 
     @classmethod
-    async def update_airplane_model(cls, field_id: int, data: AirplaneModelData):
-        # check if admin
+    async def update_airplane_model(cls, field_id: int, data: AirplaneModelData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("airplane_model", field_id, data.__dict__)
 
     @classmethod
-    async def delete_airplane_model(cls, field_id: id):
-        # check if admin
+    async def delete_airplane_model(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("airplane_model", field_id)
 
     # AIRPLANE -----------------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_airplane(cls):
-        # check if admin
+    async def get_all_airplane(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(AirplaneModel).options(joinedload(AirplaneModel.airplane_model))
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -323,8 +355,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_airplane(cls, data: AirplaneData):
-        # check if admin
+    async def create_airplane(cls, data: AirplaneData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(AirplaneModelModel).filter_by(name=data.airplaneModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -339,8 +372,9 @@ class Classifier:
                                              "registration_number": data.registrationNumber})
 
     @classmethod
-    async def update_airplane(cls, field_id: int, data: AirplaneData):
-        # check if admin
+    async def update_airplane(cls, field_id: int, data: AirplaneData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(AirplaneModelModel).filter_by(name=data.airplaneModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -355,56 +389,66 @@ class Classifier:
                                              "registration_number": data.registrationNumber})
 
     @classmethod
-    async def delete_airplane(cls, field_id: id):
-        # check if admin
+    async def delete_airplane(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("airplane", field_id)
 
     # MAINTENANCE_MODEL --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_maintenance_model(cls):
-        # check if admin
+    async def get_all_maintenance_model(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.get_all_from_table("maintenance_model")
 
     @classmethod
-    async def create_maintenance_model(cls, data: MaintenanceModelData):
-        # check if admin
+    async def create_maintenance_model(cls, data: MaintenanceModelData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("maintenance_model", data.__dict__)
 
     @classmethod
-    async def update_maintenance_model(cls, field_id: int, data: MaintenanceModelData):
-        # check if admin
+    async def update_maintenance_model(cls, field_id: int, data: MaintenanceModelData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("maintenance_model", field_id, data.__dict__)
 
     @classmethod
-    async def delete_maintenance_model(cls, field_id: id):
-        # check if admin
+    async def delete_maintenance_model(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("maintenance_model", field_id)
 
     # JOB_TITLE --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_job_title(cls):
-        # check if admin
+    async def get_all_job_title(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.get_all_from_table("job_title")
 
     @classmethod
-    async def create_job_title(cls, data: JobTitleData):
-        # check if admin
+    async def create_job_title(cls, data: JobTitleData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.create_field("job_title", data.__dict__)
 
     @classmethod
-    async def update_job_title(cls, field_id: int, data: JobTitleData):
-        # check if admin
+    async def update_job_title(cls, field_id: int, data: JobTitleData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.update_field("job_title", field_id, data.__dict__)
 
     @classmethod
-    async def delete_job_title(cls, field_id: id):
-        # check if admin
+    async def delete_job_title(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("job_title", field_id)
 
     # EMPLOYEE --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_employee(cls):
-        # check if admin
+    async def get_all_employee(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(EmployeeModel).options(joinedload(EmployeeModel.job_title))
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -421,8 +465,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_employee(cls, data: EmployeeData):
-        # check if admin
+    async def create_employee(cls, data: EmployeeData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(JobTitleModel).filter_by(name=data.jobTitleName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -440,8 +485,9 @@ class Classifier:
                                              "experience": data.experience})
 
     @classmethod
-    async def update_employee(cls, field_id: int, data: EmployeeData):
-        # check if admin
+    async def update_employee(cls, field_id: int, data: EmployeeData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(JobTitleModel).filter_by(name=data.jobTitleName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -459,14 +505,16 @@ class Classifier:
                                              "experience": data.experience})
 
     @classmethod
-    async def delete_employee(cls, field_id: id):
-        # check if admin
+    async def delete_employee(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("employee", field_id)
 
     # PRETRIP_MAINTENANCE --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_pretrip_maintenance(cls):
-        # check if admin
+    async def get_all_pretrip_maintenance(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(PretripMaintenanceModel).options(
             joinedload(PretripMaintenanceModel.maintenance_model),
             joinedload(PretripMaintenanceModel.employee),
@@ -489,8 +537,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_pretrip_maintenance(cls, data: PretripMaintenanceData):
-        # check if admin
+    async def create_pretrip_maintenance(cls, data: PretripMaintenanceData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(MaintenanceModelModel).filter_by(name=data.maintenanceModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -534,8 +583,9 @@ class Classifier:
             )
 
     @classmethod
-    async def update_pretrip_maintenance(cls, field_id: int, data: PretripMaintenanceData):
-        # check if admin
+    async def update_pretrip_maintenance(cls, field_id: int, data: PretripMaintenanceData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(MaintenanceModelModel).filter_by(name=data.maintenanceModelName)
         async with new_session() as session:
             result = await session.execute(querydb)
@@ -579,14 +629,16 @@ class Classifier:
             )
 
     @classmethod
-    async def delete_pretrip_maintenance(cls, field_id: id):
-        # check if admin
+    async def delete_pretrip_maintenance(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         return await Functions.delete_field("pretrip_maintenance", field_id)
 
     # SCHEDULED_FLIGHT --------------------------------------------------------------------------------------
     @classmethod
-    async def get_all_scheduled_flight(cls):
-        # check if admin
+    async def get_all_scheduled_flight(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(ScheduledFlightModel).options(
             joinedload(ScheduledFlightModel.flight)
             .joinedload(FlightModel.airline),
@@ -627,8 +679,9 @@ class Classifier:
         return data
 
     @classmethod
-    async def create_scheduled_flight(cls, data: ScheduledFlightData):
-        # check if admin
+    async def create_scheduled_flight(cls, data: ScheduledFlightData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(FlightModel).join(FlightModel.airport).join(FlightModel.airline).options(
             contains_eager(FlightModel.airline),
             contains_eager(FlightModel.airport)
@@ -685,8 +738,9 @@ class Classifier:
         return Inform(detail="created", field_id=inform.field_id)
 
     @classmethod
-    async def update_scheduled_flight(cls, field_id: int, data: ScheduledFlightData):
-        # check if admin
+    async def update_scheduled_flight(cls, field_id: int, data: ScheduledFlightData, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = select(FlightModel).options(
             joinedload(FlightModel.airline),
             joinedload(FlightModel.airport)
@@ -746,8 +800,9 @@ class Classifier:
         return Inform(detail="updated", field_id=inform.field_id)
 
     @classmethod
-    async def delete_scheduled_flight(cls, field_id: id):
-        # check if admin
+    async def delete_scheduled_flight(cls, field_id: id, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        Functions.check_admin(user_info)
         querydb = delete(CrewModel).filter_by(scheduled_flight_id=field_id)
         async with new_session() as session:
             await session.execute(querydb)

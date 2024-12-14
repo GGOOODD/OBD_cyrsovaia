@@ -12,7 +12,8 @@ from services import Auth
 class User:
     @classmethod
     async def create_flight_history(cls, sch_flight_id: int, request: Request):
-        user_id = await Functions.get_user_id(request)
+        user_info = await Functions.get_user_id_and_role(request)
+        user_id = user_info["id"]
 
         querydb = select(FlightHistoryModel).filter_by(user_id=user_id, scheduled_flight_id=sch_flight_id)
         async with new_session() as session:
@@ -45,8 +46,8 @@ class User:
 
     @classmethod
     async def get_all_flight_history(cls, request: Request):
-        # check if user, get user_id
-        user_id = await Functions.get_user_id(request)
+        user_info = await Functions.get_user_id_and_role(request)
+        user_id = user_info["id"]
 
         querydb = select(FlightHistoryModel).filter_by(user_id=user_id).options(
             joinedload(FlightHistoryModel.scheduled_flight)
@@ -72,8 +73,8 @@ class User:
 
     @classmethod
     async def get_user_info(cls, request: Request):
-        # check if user, get user_id
-        user_id = await Functions.get_user_id(request)
+        user_info = await Functions.get_user_id_and_role(request)
+        user_id = user_info["id"]
 
         querydb = select(UserModel).filter_by(id=user_id)
         async with new_session() as session:
@@ -84,8 +85,14 @@ class User:
         return data
 
     @classmethod
+    async def check_user_admin(cls, request: Request):
+        user_info = await Functions.get_user_id_and_role(request)
+        return {"admin": user_info["admin"]}
+
+    @classmethod
     async def change_password(cls, password: UpdPassword, request: Request):
-        user_id = await Functions.get_user_id(request)
+        user_info = await Functions.get_user_id_and_role(request)
+        user_id = user_info["id"]
 
         querydb = select(UserModel).filter_by(id=user_id)
         async with new_session() as session:
@@ -98,13 +105,14 @@ class User:
         except IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Args is wrong",
+                detail="Неверные данные",
             )
         await session.commit()
-        return Inform(detail="done", field_id=None)
+        return Inform(detail="Изменено", field_id=None)
 
     @classmethod
     async def change_fio(cls, fio: UpdFIO, request: Request):
-        user_id = await Functions.get_user_id(request)
+        user_info = await Functions.get_user_id_and_role(request)
+        user_id = user_info["id"]
 
         return await Functions.update_field("user", user_id, fio.__dict__)

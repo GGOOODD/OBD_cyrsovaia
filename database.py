@@ -149,6 +149,7 @@ class UserModel(Model):
     patronymic: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(256), unique=True)
     password: Mapped[str] = mapped_column(String(256))
+    admin: Mapped[bool]
 
 
 class FlightHistoryModel(Model):

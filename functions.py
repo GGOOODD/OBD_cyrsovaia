@@ -16,7 +16,7 @@ class Functions:
                  "user": UserModel, "flight_history": FlightHistoryModel, "employee": EmployeeModel, "crew": CrewModel}
 
     @classmethod
-    async def get_user_id(cls, request: Request) -> int:
+    async def get_user_id_and_role(cls, request: Request):
         token = request.cookies.get("token")
         if token is None:
             raise HTTPException(
@@ -33,8 +33,15 @@ class Functions:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User cookie is outdated"
             )
+        return {"id": user_field.id, "admin": user_field.admin}
 
-        return user_field.id
+    @classmethod
+    def check_admin(cls, user_info: dict):
+        if not user_info["admin"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Вы не являетесь администратором",
+            )
 
     @classmethod
     async def check_foreign_keys(cls):
@@ -89,8 +96,8 @@ class Functions:
             await session.commit()
             # await Functions.check_foreign_keys()
         if tablename == "crew":
-            return Inform(detail="created", field_id=None)
-        return Inform(detail="created", field_id=query_field.id)
+            return Inform(detail="Создано", field_id=None)
+        return Inform(detail="Создано", field_id=query_field.id)
 
     @classmethod
     async def get_all_from_table(cls, tablename: str):
@@ -124,11 +131,11 @@ class Functions:
             except IntegrityError:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Args is wrong",
+                    detail="Неверные данные",
                 )
             await session.commit()
             # await Functions.check_foreign_keys()
-        return Inform(detail="updated", field_id=field.id)
+        return Inform(detail="Изменено", field_id=field.id)
 
     @classmethod
     async def delete_field(cls, tablename: str, field_id: int):
@@ -147,4 +154,4 @@ class Functions:
             await session.execute(querydb)
             await session.flush()
             await session.commit()
-        return Inform(detail="field deleted", field_id=None)
+        return Inform(detail="Удалено", field_id=None)
