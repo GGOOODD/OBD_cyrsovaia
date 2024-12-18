@@ -38,7 +38,7 @@ class SchFlightModelData(BaseModel):
 
 class AirplaneModelData(BaseModel):
     name: constr(max_length=100)
-    capacity: int
+    capacity: float
 
 
 class AirplaneData(BaseModel):
